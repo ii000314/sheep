@@ -25,7 +25,8 @@
                      {ok, cowboy_req:req(), cowboy_middleware:env()}.
 upgrade(Req, Env, Handler, HandlerOpts) ->
     {ContentType, Req1} = cowboy_req:header(<<"content-type">>, Req, ?CT_JSON),
-    {AcceptContentType, Req2} = cowboy_req:header(<<"accept">>, Req1, check_content_type(ContentType)),
+    % {_AcceptContentType, Req2} = cowboy_req:header(<<"accept">>, Req1, check_content_type(ContentType)),
+    {AcceptContentType, Req2} = {ContentType, Req1}, % WTF? Don't ask!
     try
         case erlang:function_exported(Handler, debug_request_handler, 1) of
             true -> Handler:debug_request_handler(Req2);
