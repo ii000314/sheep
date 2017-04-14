@@ -16,7 +16,7 @@
 -type(mime_type() :: binary()).
 -type(http_code() :: integer()).
 
-
+-define(CT_TEXT, <<"text/plain">>).
 -define(CT_JSON, <<"application/json">>).
 -define(CT_MSG_PACK, <<"application/x-msgpack">>).
 
@@ -25,7 +25,7 @@
                      {ok, cowboy_req:req(), cowboy_middleware:env()}.
 upgrade(Req, Env, Handler, HandlerOpts) ->
     {ContentType, Req1} = cowboy_req:header(<<"content-type">>, Req, ?CT_JSON),
-    {AcceptContentType, Req2} = cowboy_req:header(<<"accept">>, Req1, ?CT_JSON),
+    {AcceptContentType, Req2} = cowboy_req:header(<<"accept">>, Req1, check_content_type(ContentType)),
     try
         case erlang:function_exported(Handler, debug_request_handler, 1) of
             true -> Handler:debug_request_handler(Req2);
@@ -250,6 +250,7 @@ generate_payload(Data, ContentType) ->
     case ContentType of
         ?CT_JSON -> jiffy:encode(Data);
         ?CT_MSG_PACK -> msgpack:pack(Data, [{format, jiffy}]);
+        ?CT_TEXT -> Data;
         _AnyOtherContentType -> jiffy:encode(Data)
     end.
 
@@ -282,6 +283,7 @@ parse_payload(Payload, ContentType) ->
 -spec check_content_type(binary()) -> binary().
 check_content_type(?CT_JSON) -> ?CT_JSON;
 check_content_type(?CT_MSG_PACK) -> ?CT_MSG_PACK;
+check_content_type(<< "text", _/binary >>) -> ?CT_TEXT;
 check_content_type(_) -> ?CT_JSON.
 
 
