@@ -208,8 +208,8 @@ slurp_request(Req, ContentType) ->
 
 -spec spit_response(cowboy_req:req(), http_code(), json_obj(), binary()) -> {ok, cowboy_req:req()}.
 spit_response(Req, Code, Response, ContentType) ->
-    Body = generate_payload(Response, ContentType),
     ContentType2 = check_content_type(ContentType),
+    Body = generate_payload(Response, ContentType2),
     cowboy_req:reply(Code, [{<<"content-type">>, ContentType2}], Body, Req).
 
 
