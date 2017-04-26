@@ -25,8 +25,8 @@
                      {ok, cowboy_req:req(), cowboy_middleware:env()}.
 upgrade(Req, Env, Handler, HandlerOpts) ->
     {ContentType, Req1} = cowboy_req:header(<<"content-type">>, Req, ?CT_JSON),
-    % {_AcceptContentType, Req2} = cowboy_req:header(<<"accept">>, Req1, check_content_type(ContentType)),
-    {AcceptContentType, Req2} = {ContentType, Req1}, % WTF? Don't ask!
+    {AcceptContentType, Req2} = cowboy_req:header(<<"accept">>, Req1, check_content_type(ContentType)),
+
     try
         case erlang:function_exported(Handler, debug_request_handler, 1) of
             true -> Handler:debug_request_handler(Req2);
@@ -284,8 +284,12 @@ parse_payload(Payload, ContentType) ->
 -spec check_content_type(binary()) -> binary().
 check_content_type(?CT_JSON) -> ?CT_JSON;
 check_content_type(?CT_MSG_PACK) -> ?CT_MSG_PACK;
-check_content_type(<< "text", _/binary >>) -> ?CT_TEXT;
-check_content_type(_) -> ?CT_JSON.
+check_content_type(Other) ->
+    IsText = binary:match(Other, <<"text/plain">>) =/= nomatch,
+    if
+        IsText -> ?CT_TEXT;
+        true -> ?CT_JSON
+    end.
 
 
 -spec normalize_params(any()) -> any().
